@@ -5,7 +5,14 @@ from re import match
 class OKSValueError(Exception):
     pass
 
+def find_key_value(d, target_key):
+    if not isinstance(d, dict):
+        raise TypeError("Expected a dictionary as input")
 
+    for key in d:
+        if key == target_key:
+            return d[key]
+    return None
 
 def get_many_object(conf_data, object_name=None, object_id=None, class_name=None):
     ret = []

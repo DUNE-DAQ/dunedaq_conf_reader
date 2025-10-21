@@ -2,7 +2,8 @@ from dataclasses import dataclass, Field, fields
 import json
 from pathlib import Path
 import logging
-from dunedaq_conf_reader.oks_utils import find_session, get, get_applications
+from dunedaq_conf_reader.oks_utils import find_session, get, get_applications, get_one_object, find_key_value
+
 detector_types = ['CRP', 'APA']
 
 leak_dict = {
@@ -39,6 +40,11 @@ class DUNEDAQConfDataExtractor:
     strobe_skip          : dict[str,int ] = None
     test_cap             : dict[str,bool] = None
 
+    # Run settings
+    offline_data_stream  : str = None
+    op_env               : str = None
+    tpg_channel_map      : str = None
+
     def __post_init__(self):
         if self.oks_file_path == None or self.session_name == None:
             return
@@ -67,6 +73,11 @@ class DUNEDAQConfDataExtractor:
         self.strobe_skip      = {}
         self.test_cap         = {}
 
+        #detector settings
+        self.offline_data_stream = ''
+        self.op_env              = ''
+        self.tpg_channel_map     = ''
+
         if self.load_json: 
             conf_data = self.oks_file_path
         else:
@@ -75,6 +86,7 @@ class DUNEDAQConfDataExtractor:
                 conf_data = json.load(f)
 
         session = find_session(conf_data, self.session_name)
+        #print(f'----session name {self.session_name} found the following session: {session}')
         logging.debug(f'{session=}')
         wiec_applications = get_applications(
             conf_data,
@@ -82,6 +94,14 @@ class DUNEDAQConfDataExtractor:
             application_class_name="WIECApplication"
         )
         logging.info(f'Found {len(wiec_applications)} WIEC applications')
+
+        detector_config = get_one_object(
+                conf_data,
+                class_name="DetectorConfig")
+
+        self.offline_data_stream = find_key_value(detector_config, "offline_data_stream")
+        self.op_env              = find_key_value(detector_config, "op_env")
+        self.tpg_channel_map     = find_key_value(detector_config, "tpg_channel_map")
 
         for wiec_application in wiec_applications:
             wib = wiec_application['__name'].split("@")[0].upper()
