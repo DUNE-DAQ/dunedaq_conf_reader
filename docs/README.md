@@ -49,6 +49,9 @@ You can now access (some of) the  variables:
  - `pulse_period`: `dict[str,int]`
  - `phase_group`: Not accessible
  - `phases`: Not accessible
+ - `offline_data_stream`: str
+ - `op_env`: str
+ - `tpg_channel_map`: str
 
 ```python
 >> print(cde.baseline)
